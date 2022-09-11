@@ -4,6 +4,7 @@ const { faker } = require('@faker-js/faker');
 
 const types = ["employee", "manager", "executive", "vendor", "customer", "contractor"]
 const sex = ['M', 'F', 'O']
+let companyId = 1;
 
 sequelize
     .sync({ force: true })
@@ -35,11 +36,37 @@ function allTypes() {
         phone: `${faker.phone.number()}`,
         email: `${faker.internet.exampleEmail()}`,
         address: `${faker.address.streetAddress()}, ${faker.address.stateAbbr()}`,
-    };
+        //        companyId: null,
+        department: null,
+        title: null,
+        salary: null,
+        managersId: null,
+        bonus: null,
+        company: null,
+        sex: null,
+        spouse: null,
+        dependants: null
+    }
 }
 
 //returns object to create an employee type or manager type
 function employeeOrManager(empType) {
+    companyId++;
+    let data = allTypes(); //get data that all data entries have
+    newData = {
+        ...data,
+        type: `${empType}`,
+        companyId: `${companyId}`,
+        department: `${faker.name.jobDescriptor()}`,
+        title: `${faker.name.jobTitle()}`,
+        salary: Math.floor(Math.random() * 150000),
+        managersId: Math.floor(Math.random() * 100),
+        bonus: null,
+        company: null,
+        sex: sex[Math.floor(Math.random() * 3)],
+        spouse: null,
+        dependants: null
+    }
     let spouse;
     let dependants;
     //chance of spouce
@@ -53,11 +80,25 @@ function employeeOrManager(empType) {
             dependants = dependants.concat(`, ${faker.name.firstName()} ${faker.name.lastName()}`);
         }
     } else { dependants = null; }
-    let data = allTypes();
+    if (spouse == null && dependants == null) { return newData };
+    if (spouse == null && dependants != null) {
+        newData.dependants = dependants;
+        return newData;
+    };
+    if (spouse != null && dependants == null) {
+        newData.spouse = spouse;
+        return newData;
+    };
+    if (spouse != null && dependants != null) {
+        newData.dependants = dependants;
+        newData.spouce = spouse;
+        return newData;
+    };
+
     return {
         ...data,
         type: `${empType}`,
-        companyId: null,
+        //        companyId: null,
         department: `${faker.name.jobDescriptor()}`,
         title: `${faker.name.jobTitle()}`,
         salary: Math.floor(Math.random() * 150000),
@@ -74,7 +115,7 @@ function executive() {
     let data = employeeOrManager("executive")
     return {
         ...data,
-        bonus: `${Math.floor(Math.random() * 30000)}`
+        bonus: `${Math.floor(Math.random() * 30000)}`,
     }
 }
 
@@ -83,6 +124,7 @@ function vendorsCustomersOrContractors(emptype) {
     return {
         ...data,
         type: `${emptype}`,
-        company: `${faker.company.name()}`
+        company: `${faker.company.name()}`,
+        companyId: null
     }
 }
